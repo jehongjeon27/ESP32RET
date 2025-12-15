@@ -306,7 +306,7 @@ void setup()
     if (settings.enableBT) 
     {
         Serial.println("Starting bluetooth");
-        elmEmulator.setup();
+        // elmEmulator.setup();
         if (SysSettings.fancyLED && (settings.wifiMode == 0) )
         {
             leds[0] = CRGB::Green;
