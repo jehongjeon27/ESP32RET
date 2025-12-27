@@ -212,10 +212,28 @@ void CANManager::loop()
             }
             
             toggleRXLED();
-            if ( (incoming.id > 0x7DF && incoming.id < 0x7F0) || elmEmulator.getMonitorMode() ) elmEmulator.processCANReply(incoming);
+
+            if ( elmEmulator.isWaitingSearch() == true ) {
+                elmEmulator.processCANSearching(incoming);
+            }
+            if ( (elmEmulator.isCRAenabled() == true) && (incoming.id == elmEmulator.getCRA())) {
+                elmEmulator.processCANReply(incoming);
+            } else if ( elmEmulator.getMonitorMode() ) {
+                elmEmulator.processCANReply(incoming);
+            }
+
             wifiLength = wifiGVRET.numAvailableBytes();
             serialLength = serialGVRET.numAvailableBytes();
             maxLength = (wifiLength > serialLength) ? wifiLength:serialLength;
         }
+
+        if (elmEmulator.isWaitingReply()) {
+            elmEmulator.processCANWaiting(incoming);    // CAN Request & Responmse Timeout Calculate
+        }
+        if ( elmEmulator.isWaitingSearch() == true ) {
+            elmEmulator.processCANSearching(incoming);
+        }
+        
+        
     }
 }

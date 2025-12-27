@@ -71,6 +71,15 @@ public:
     void processCANReply(CAN_FRAME &frame);
     bool getMonitorMode();
 
+    void processCANWaiting(CAN_FRAME &frame);
+    bool isWaitingReply();
+
+    void processCANSearching(CAN_FRAME &frame);
+    bool isWaitingSearch();
+
+    bool isCRAenabled();
+    uint32_t getCRA();
+
 private:
 #ifndef CONFIG_IDF_TARGET_ESP32S3
     BluetoothSerial serialBT;
@@ -79,15 +88,53 @@ private:
     CommBuffer txBuffer;
     char incomingBuffer[128]; //storage for one incoming line
     char buffer[30]; // a buffer for various string conversions
-    bool bLineFeed; //should we use line feeds?
-    bool bHeader; //should we produce a header?
-    bool bEcho; //should we echo back anything sent to us?
-    bool bMonitorMode; //should we output all frames?
-    bool bDLC; //output DLC?
-    uint32_t ecuAddress;
     int tickCounter;
     int ibWritePtr;
     int currReply;
+
+
+    bool     monitorAll_enable;             // OBD Monitor All                   (AT MA)    ELM 1.0
+    bool     allowLongMessages;             // OBD Allow Long Messages           (AT AL)    ELM 1.0
+    
+    uint32_t canTransmitAddress;            // CAN Transmit Address          (AT SH hhh)    ELM 1.0
+
+    bool     canAutomaticFormatting_enable; // CAN Automatic Formatting On/Off (AT CAF1)    ELM 1.0
+
+    
+    bool     canExtendedAddressing_enable;  // CAN Extended Address             (AT CEA)    ELM 1.4
+    uint32_t canExtendedAddressing_data;    // CAN Extended Address          (AT CEA hh)    ELM 1.4
+
+    bool     canIdFilter_enable;            // CAN ID Filter                     (AT CF)    ELM 1.0
+    uint32_t canIdFilter_addr;              // CAN ID Filter      (AT CF hhh | hhhhhhhh)    ELM 1.0
+    bool     canIdFilter_addrExtended;
+
+    bool     canFlowControl_enable;         // CAN Flow Control On/Off         (AT CFC1)    ELM 1.0
+    uint8_t  canFlowControl_mode;           // CAN Flow Control Mode        (AT FC SM 1)    ELM 1.1
+    uint32_t canFlowControl_addr;           // CAN Flow Control Address       (AT FC SH)    ELM 1.1
+    bool     canFlowControl_addrExtended;   // CAN Flow Control Extended Address Y/N
+    uint8_t  canFlowControl_data[5];        // CAN Flow Control Data          (AT FC SD)    ELM 1.1
+    uint8_t  canFlowControl_dataLen;        // CAN Flow Control Data Len
+
+    // bool     canAutomaticResponse_enable;   // OBD Automatic Response            (AT AR)    ELM 1.2
+    bool     canReceiveAddress_enable;      // CAN Receive Address On/Off       (AT CRA)    ELM 1.4b
+    uint32_t canReceiveAddress_addr;        // CAN Receive Address Address  (AT CRA hhh)    ELM 1.3
+    bool     canReceiveAddress_addrExtended;// CAN Receive Address Extended Address
+    
+    bool     print_linefeed;                // General Printing with Linefeed    (AT L1)    ELM 1.0
+    bool     print_echo;                    // OBD Printing with ECHO            (AT E1)    ELM 1.0
+    bool     print_header;                  // OBD Printing with Header          (AT H1)    ELM 1.0
+    bool     print_dlc;                     // CAN Printing with DLC             (AT D1)    ELM 1.3
+    bool     print_space;                   // OBD Printing with Space           (AT S1)    ELM 1.3
+
+    uint16_t timeout;                       // OBD Timeout                    (AT ST hh)    ELM 1.0
+
+
+    bool     waitingForRequest;
+    uint32_t waitingForRequest_millis;
+    uint16_t waitingForRequest_CANcount;
+
+    bool     waitingForSearching;
+    uint32_t waitingForSearching_millis;
 
     void processCmd();
     String processELMCmd(char *cmd);
